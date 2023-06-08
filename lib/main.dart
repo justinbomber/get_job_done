@@ -43,10 +43,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // 此方法每次調用setState時都會重新運行，例如上面的_incrementCounter方法。
 
+    // 此方法每次調用setState時都會重新運行，例如上面的_incrementCounter方法。
     // Flutter框架已經進行了優化，使得重新運行build方法變得快速，
     // 因此您可以只重新構建需要更新的內容，而不必個別更改小部件的實例。
+
     return Scaffold(
       appBar: AppBar(
         // 試試這個：在這裡更改顏色為特定的顏色（例如Colors.amber），
@@ -62,11 +63,9 @@ class _MyHomePageState extends State<MyHomePage> {
           // Column也是一個布局小部件。它接收一個子小部件列表並垂直排列它們。
           // 默認情況下，它在水平方向上尺寸自適應其子小部件，
           // 並嘗試與父元素一樣高。
-
           // Column具有各種屬性來控制自身的尺寸和子小部件的位置。
           // 在這裡，我們使用mainAxisAlignment來將子小部件在垂直方向上居中對齊；
           // 這裡的主軸是垂直軸，因為Column是垂直的（橫軸將是水平的）。
-
           // 試試這個：啟用"debug painting"（在IDE中選擇"Toggle Debug Paint"操作，
           // 或在控制台中按"p"），查看每個小部件的框架線條。
           mainAxisAlignment: MainAxisAlignment.center,

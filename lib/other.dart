@@ -1,621 +1,127 @@
-// Copyright 2013 The Flutter Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
-import 'dart:math' as math;
-
+import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:english_words/english_words.dart';
 
-void main() {
-  runApp(MusicAppDemo());
+class DiscData {
+  static final _rng = Random();
+
+  final double size; // 圓形圖案的大小
+  final Color color; // 圓形圖案的顏色
+  final Alignment alignment; // 圓形圖案的對齊方式
+
+  DiscData()
+      : size = _rng.nextDouble() * 40 + 10, // 隨機生成圓形圖案的大小
+        color = Color.fromARGB(
+          _rng.nextInt(200),
+          _rng.nextInt(255),
+          _rng.nextInt(255),
+          _rng.nextInt(255),
+        ), // 隨機生成圓形圖案的顏色
+        alignment = Alignment(
+          _rng.nextDouble() * 2 - 1,
+          _rng.nextDouble() * 2 - 1,
+        ); // 隨機生成圓形圖案的對齊方式
 }
+// 這段程式碼定義了一個 DiscData類別，它表示圓形圖案的數據。在 
+// DiscData類別中，我們使用了 
+// Random類別來隨機生成圓形圖案的大小、顏色和對齊方式
 
-class MusicAppDemo extends StatelessWidget {
-  MusicAppDemo({Key? key}) : super(key: key);
-
-  final MusicDatabase database = MusicDatabase.mock();
-
-  final GoRouter _router = GoRouter(
-    initialLocation: '/library',
-    routes: <RouteBase>[
-      ShellRoute(
-        builder: (BuildContext context, GoRouterState state, Widget child) {
-          return MusicAppShell(
-            child: child,
-          );
-        },
-        routes: <RouteBase>[
-          GoRoute(
-            path: '/library',
-            pageBuilder: (context, state) {
-              return FadeTransitionPage(
-                child: const LibraryScreen(),
-                key: state.pageKey,
-              );
-            },
-            routes: <RouteBase>[
-              GoRoute(
-                path: 'album/:albumId',
-                builder: (BuildContext context, GoRouterState state) {
-                  return AlbumScreen(
-                    albumId: state.pathParameters['albumId'],
-                  );
-                },
-                routes: [
-                  GoRoute(
-                    path: 'song/:songId',
-                    // Display on the root Navigator
-                    builder: (BuildContext context, GoRouterState state) {
-                      return SongScreen(
-                        songId: state.pathParameters['songId']!,
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ],
+void main() async {
+  runApp(
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Container(
+          color: const Color(0xFF15202D),
+          child: const SizedBox.expand(
+            child: VariousDiscs(50),
           ),
-          GoRoute(
-            path: '/recents',
-            pageBuilder: (context, state) {
-              return FadeTransitionPage(
-                child: const RecentlyPlayedScreen(),
-                key: state.pageKey,
-              );
-            },
-            routes: <RouteBase>[
-              GoRoute(
-                path: 'song/:songId',
-                // Display on the root Navigator
-                builder: (BuildContext context, GoRouterState state) {
-                  return SongScreen(
-                    songId: state.pathParameters['songId']!,
-                  );
-                },
-              ),
-            ],
-          ),
-          GoRoute(
-            path: '/search',
-            pageBuilder: (context, state) {
-              final query = state.queryParameters['q'] ?? '';
-              return FadeTransitionPage(
-                child: SearchScreen(
-                  query: query,
-                ),
-                key: state.pageKey,
-              );
-            },
-          ),
-        ],
+        ),
       ),
-    ],
+    ),
   );
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'Music app',
-      theme: ThemeData(primarySwatch: Colors.pink),
-      routerConfig: _router,
-      builder: (context, child) {
-        return MusicDatabaseScope(
-          state: database,
-          child: child!,
-        );
-      },
-    );
-  }
 }
+// 這是程式的主要部分，它定義了一個 main函數，並在其中創建了一個 
+// MaterialApp Widget。在這個 Widget 中，我們定義了一個 Scaffold
+// Widget，並在其中創建了一個 Container Widget。在 Container
+//  中，我們設置了背景顏色為 0xFF15202D，並在其中創建了一個 
+// VariousDiscs Widget，它會在螢幕上顯示多個圓形的圖案
+class VariousDiscs extends StatefulWidget {
+  final int numberOfDiscs;
 
-class MusicAppShell extends StatelessWidget {
-  final Widget child;
-
-  const MusicAppShell({
-    Key? key,
-    required this.child,
-  }) : super(key: key);
+  const VariousDiscs(this.numberOfDiscs);
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: child,
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.my_library_music_rounded),
-            label: 'Library',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.timelapse),
-            label: 'Recently Played',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            label: 'Search',
-          ),
-        ],
-        currentIndex: _calculateSelectedIndex(context),
-        onTap: (int idx) => _onItemTapped(idx, context),
-      ),
-    );
+  State<VariousDiscs> createState() => _VariousDiscsState();
+}
+// 這個類別 VariousDiscs定義了多個圓形的圖案。在這個類別中，我們定義了一個 
+// numberOfDiscs參數，它表示要顯示的圓形數量。在 const關鍵字之前，我們定義了一個 
+// StatefulWidget，並在其中定義了一個 _VariousDiscsState類別
+
+class _VariousDiscsState extends State<VariousDiscs> {
+  final _discs = <DiscData>[]; // 一個保存 DiscData 物件的列表
+
+//   在 _VariousDiscsState類別中，我們定義了一個 _discs
+//  列表，用來保存圓形圖案的數據。在 initState()方法中，我們使用 _makeDiscs()
+//  方法來生成初始的圓形圖案。在 _makeDiscs()方法中，我們清空 _discs列表，然後使用 
+//  DiscData類別來生成指定數量的圓形圖案，並將它們添加到 _discs列表中。
+
+
+
+  @override
+  void initState() {
+    super.initState();
+    _makeDiscs(); // 初始化時，生成 DiscData 物件
   }
 
-  static int _calculateSelectedIndex(BuildContext context) {
-    final GoRouter route = GoRouter.of(context);
-    final String location = route.location;
-    if (location.startsWith('/recents')) {
-      return 1;
-    } else if (location.startsWith('/search')) {
-      return 2;
-    } else {
-      return 0;
+  void _makeDiscs() {
+    _discs.clear(); // 清空現有的 discs 列表
+    for (int i = 0; i < widget.numberOfDiscs; i++) {
+      _discs.add(DiscData()); // 根據 widget.numberOfDiscs 的值生成 DiscData 物件，並將它們添加到 discs 列表中
     }
   }
 
-  void _onItemTapped(int index, BuildContext context) {
-    switch (index) {
-      case 1:
-        GoRouter.of(context).go('/recents');
-        break;
-      case 2:
-        GoRouter.of(context).go('/search');
-        break;
-      case 0:
-      default:
-        GoRouter.of(context).go('/library');
-        break;
-    }
-  }
-}
-
-class LibraryScreen extends StatelessWidget {
-  const LibraryScreen({Key? key}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
-    final database = MusicDatabase.of(context);
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Library'),
-      ),
-      body: ListView.builder(
-        itemBuilder: (context, albumId) {
-          final album = database.albums[albumId];
-          return AlbumTile(
-            album: album,
-            onTap: () {
-              GoRouter.of(context).go('/library/album/$albumId');
-            },
-          );
-        },
-        itemCount: database.albums.length,
-      ),
-    );
-  }
-}
-
-class RecentlyPlayedScreen extends StatelessWidget {
-  const RecentlyPlayedScreen({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final database = MusicDatabase.of(context);
-    final songs = database.recentlyPlayed;
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Recently Played'),
-      ),
-      body: ListView.builder(
-        itemBuilder: (context, index) {
-          final song = songs[index];
-          final albumIdInt = int.tryParse(song.albumId)!;
-          final album = database.albums[albumIdInt];
-          return SongTile(
-            album: album,
-            song: song,
-            onTap: () {
-              GoRouter.of(context).go('/recents/song/${song.fullId}');
-            },
-          );
-        },
-        itemCount: songs.length,
-      ),
-    );
-  }
-}
-
-class SearchScreen extends StatefulWidget {
-  final String query;
-
-  const SearchScreen({Key? key, required this.query}) : super(key: key);
-
-  @override
-  State<SearchScreen> createState() => _SearchScreenState();
-}
-
-class _SearchScreenState extends State<SearchScreen> {
-  String? _currentQuery;
-
-  @override
-  Widget build(BuildContext context) {
-    final database = MusicDatabase.of(context);
-    final songs = database.search(widget.query);
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Search'),
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: TextField(
-              decoration: const InputDecoration(
-                hintText: 'Search...',
-                border: OutlineInputBorder(),
-              ),
-              onChanged: (String? newSearch) {
-                _currentQuery = newSearch;
-              },
-              onEditingComplete: () {
-                GoRouter.of(context).go(
-                  '/search?q=$_currentQuery',
-                );
-              },
-            ),
+//     在 build()方法中，我們使用了 Stack和 Positioned來定位和顯示圓形圖案。在 Stack
+//  中，我們使用 Center Widget 顯示一個文字，然後使用 GestureDetector
+//  Widget 來處理點擊事件。在點擊事件中，我們使用 setState()
+//  方法來重新生成新的圓形圖案。在 Stack中，我們使用 for迴圈來遍歷 _discs
+//  列表中的每個圓形圖案，並使用 Positioned.fill()和 AnimatedAlign()和 AnimatedContainer()
+//  來定位和顯示它們。在 AnimatedAlign()中，我們使用 disc.alignment來指定圓形圖案的對齊方式，在 
+// AnimatedContainer()中，我們使用 disc.color和 disc.size來指定圓形圖案的顏色和大小
+    return Stack(
+      children: [
+        const Center(
+          child: Text(
+            'eat my',
+            style: TextStyle(color: Colors.white, fontSize: 50),
           ),
-          Expanded(
-            child: ListView.builder(
-              itemBuilder: (context, index) {
-                final song = songs[index];
-                return SongTile(
-                  album: database.albums[int.tryParse(song.albumId)!],
-                  song: song,
-                  onTap: () {
-                    GoRouter.of(context).go(
-                        '/library/album/${song.albumId}/song/${song.fullId}');
-                  },
-                );
-              },
-              itemCount: songs.length,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class AlbumScreen extends StatelessWidget {
-  final String? albumId;
-
-  const AlbumScreen({
-    required this.albumId,
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final database = MusicDatabase.of(context);
-    final albumIdInt = int.tryParse(albumId ?? '');
-    final album = database.albums[albumIdInt!];
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Album - ${album.title}'),
-      ),
-      body: Center(
-        child: Column(
-          children: [
-            Row(
-              children: [
-                SizedBox(
-                  width: 200,
-                  height: 200,
-                  child: Container(
-                    color: album.color,
-                    margin: const EdgeInsets.all(8),
+        ),
+        GestureDetector(
+          onTap: () => setState(() {
+            _makeDiscs(); // 在點擊手勢時，生成新的 DiscData 物件並更新狀態
+          }),
+          child: Stack(children: [
+            for (final disc in _discs)
+              Positioned.fill(
+                child: AnimatedAlign(
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeInOut,
+                  alignment: disc.alignment, // 使用 disc 物件的對齊方式
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 500),
+                    decoration: BoxDecoration(
+                      color: disc.color, // 使用 disc 物件的顏色
+                      shape: BoxShape.circle,
+                    ),
+                    height: disc.size, // 使用 disc 物件的大小
+                    width: disc.size,
                   ),
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      album.title,
-                      style: Theme.of(context).textTheme.headlineMedium,
-                    ),
-                    Text(
-                      album.artist,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            Expanded(
-              child: ListView.builder(
-                itemBuilder: (context, index) {
-                  final song = album.songs[index];
-                  return ListTile(
-                    title: Text(song.title),
-                    leading: SizedBox(
-                      width: 50,
-                      height: 50,
-                      child: Container(
-                        color: album.color,
-                        margin: const EdgeInsets.all(8),
-                      ),
-                    ),
-                    trailing: SongDuration(
-                      duration: song.duration,
-                    ),
-                    onTap: () {
-                      GoRouter.of(context)
-                          .go('/library/album/$albumId/song/${song.fullId}');
-                    },
-                  );
-                },
-                itemCount: album.songs.length,
               ),
-            ),
-          ],
+          ]),
         ),
-      ),
+      ],
     );
   }
-}
-
-class SongScreen extends StatelessWidget {
-  final String songId;
-
-  const SongScreen({
-    Key? key,
-    required this.songId,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final database = MusicDatabase.of(context);
-    final song = database.getSongById(songId);
-    final albumIdInt = int.tryParse(song.albumId);
-    final album = database.albums[albumIdInt!];
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Song - ${song.title}'),
-      ),
-      body: Column(
-        children: [
-          Row(
-            children: [
-              SizedBox(
-                width: 300,
-                height: 300,
-                child: Container(
-                  color: album.color,
-                  margin: const EdgeInsets.all(8),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      song.title,
-                      style: Theme.of(context).textTheme.displayMedium,
-                    ),
-                    Text(
-                      album.title,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  ],
-                ),
-              )
-            ],
-          )
-        ],
-      ),
-    );
-  }
-}
-
-class MusicDatabase {
-  final List<Album> albums;
-  final List<Song> recentlyPlayed;
-  final Map<String, Song> _allSongs = {};
-
-  MusicDatabase(this.albums, this.recentlyPlayed) {
-    _populateAllSongs();
-  }
-
-  factory MusicDatabase.mock() {
-    final albums = _mockAlbums().toList();
-    final recentlyPlayed = _mockRecentlyPlayed(albums).toList();
-    return MusicDatabase(albums, recentlyPlayed);
-  }
-
-  Song getSongById(String songId) {
-    if (_allSongs.containsKey(songId)) {
-      return _allSongs[songId]!;
-    }
-    throw ('No song with ID $songId found.');
-  }
-
-  List<Song> search(String searchString) {
-    final songs = <Song>[];
-    for (var song in _allSongs.values) {
-      final album = albums[int.tryParse(song.albumId)!];
-      if (song.title.contains(searchString) ||
-          album.title.contains(searchString)) {
-        songs.add(song);
-      }
-    }
-    return songs;
-  }
-
-  void _populateAllSongs() {
-    for (var album in albums) {
-      for (var song in album.songs) {
-        _allSongs[song.fullId] = song;
-      }
-    }
-  }
-
-  static MusicDatabase of(BuildContext context) {
-    final routeStateScope =
-    context.dependOnInheritedWidgetOfExactType<MusicDatabaseScope>();
-    if (routeStateScope == null) throw ('No RouteState in scope!');
-    return routeStateScope.state;
-  }
-
-  static Iterable<Album> _mockAlbums() sync* {
-    for (var i = 0; i < Colors.primaries.length; i++) {
-      final color = Colors.primaries[i];
-      final title = WordPair.random().toString();
-      final artist = WordPair.random().toString();
-      final songs = <Song>[];
-      for (var j = 0; j < 12; j++) {
-        final minutes = math.Random().nextInt(3) + 3;
-        final seconds = math.Random().nextInt(60);
-        final title = WordPair.random();
-        final duration = Duration(minutes: minutes, seconds: seconds);
-        final song = Song('$j', '$i', '$title', duration);
-
-        songs.add(song);
-      }
-      yield Album('$i', title, artist, color, songs);
-    }
-  }
-
-  static Iterable<Song> _mockRecentlyPlayed(List<Album> albums) sync* {
-    for (var album in albums) {
-      final songIndex = math.Random().nextInt(album.songs.length);
-      yield album.songs[songIndex];
-    }
-  }
-}
-
-class MusicDatabaseScope extends InheritedWidget {
-  final MusicDatabase state;
-
-  const MusicDatabaseScope({
-    required this.state,
-    required Widget child,
-    Key? key,
-  }) : super(child: child, key: key);
-
-  @override
-  bool updateShouldNotify(covariant InheritedWidget oldWidget) {
-    return oldWidget is MusicDatabaseScope && state != oldWidget.state;
-  }
-}
-
-class Album {
-  final String id;
-  final String title;
-  final String artist;
-  final Color color;
-  final List<Song> songs;
-
-  Album(this.id, this.title, this.artist, this.color, this.songs);
-}
-
-class Song {
-  final String id;
-  final String albumId;
-  final String title;
-  final Duration duration;
-
-  Song(this.id, this.albumId, this.title, this.duration);
-
-  String get fullId => '$albumId-$id';
-}
-
-class AlbumTile extends StatelessWidget {
-  final Album album;
-  final VoidCallback? onTap;
-
-  const AlbumTile({Key? key, required this.album, this.onTap}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      leading: SizedBox(
-        width: 50,
-        height: 50,
-        child: Container(
-          color: album.color,
-        ),
-      ),
-      title: Text(album.title),
-      subtitle: Text(album.artist),
-      onTap: onTap,
-    );
-  }
-}
-
-class SongTile extends StatelessWidget {
-  final Album album;
-  final Song song;
-  final VoidCallback? onTap;
-
-  const SongTile({Key? key, required this.album, required this.song, this.onTap})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      leading: SizedBox(
-        width: 50,
-        height: 50,
-        child: Container(
-          color: album.color,
-          margin: const EdgeInsets.all(8),
-        ),
-      ),
-      title: Text(song.title),
-      trailing: SongDuration(
-        duration: song.duration,
-      ),
-      onTap: onTap,
-    );
-  }
-}
-
-class SongDuration extends StatelessWidget {
-  final Duration duration;
-
-  const SongDuration({
-    required this.duration,
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-        '${duration.inMinutes.toString().padLeft(2, '0')}:${(duration.inSeconds % 60).toString().padLeft(2, '0')}');
-  }
-}
-
-/// A page that fades in an out.
-class FadeTransitionPage extends CustomTransitionPage<void> {
-  /// Creates a [FadeTransitionPage].
-  FadeTransitionPage({
-    required LocalKey key,
-    required Widget child,
-  }) : super(
-      key: key,
-      transitionsBuilder: (BuildContext context,
-          Animation<double> animation,
-          Animation<double> secondaryAnimation,
-          Widget child) =>
-          FadeTransition(
-            opacity: animation.drive(_curveTween),
-            child: child,
-          ),
-      child: child);
-
-  static final CurveTween _curveTween = CurveTween(curve: Curves.easeIn);
 }
